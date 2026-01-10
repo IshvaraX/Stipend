@@ -2,6 +2,7 @@
 export interface User {
   username: string;
   email: string;
+  token?: string;
 }
 
 export interface LoginCredentials {
@@ -13,4 +14,10 @@ export interface RegisterCredentials {
   username: string;
   email: string;
   password: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user?: User;
 }

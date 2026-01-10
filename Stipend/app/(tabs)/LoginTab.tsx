@@ -1,12 +1,13 @@
-// app/(tabs)/login.tsx
 import React, { useState } from 'react';
 import { Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'expo-router';
 
 const LoginTab = () => {
   const { login, isLoading } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const router = useRouter();
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -16,7 +17,12 @@ const LoginTab = () => {
 
     try {
       await login(username, password);
-      Alert.alert('Success', 'Logged in successfully!');
+      Alert.alert('Success', 'Logged in successfully!', [
+        {
+          text: 'OK',
+          onPress: () => router.replace('/(tabs)/HomeTab') // Navigate to HomeTab
+        }
+      ]);
     } catch (error) {
       Alert.alert('Error', 'Invalid credentials');
     }
@@ -35,31 +41,21 @@ const LoginTab = () => {
         </View>
 
         <View className="space-y-4">
-          <View>
-            <Text className="font-poppins-medium text-gray-700 mb-2">
-              Username
-            </Text>
-            <TextInput
-              className="border border-gray-300 rounded-xl px-4 py-3 font-poppins text-gray-900"
-              placeholder="Enter your username"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-            />
-          </View>
+          <TextInput
+            className="border border-gray-300 rounded-xl px-4 py-3 font-poppins text-gray-900 mb-9"
+            placeholder="Enter your username"
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+          />
 
-          <View>
-            <Text className="font-poppins-medium text-gray-700 mb-2">
-              Password
-            </Text>
-            <TextInput
-              className="border border-gray-300 rounded-xl px-4 py-3 font-poppins text-gray-900"
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-          </View>
+          <TextInput
+            className="border border-gray-300 rounded-xl px-4 py-3 font-poppins text-gray-900 mb-9"
+            placeholder="Enter your password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
 
           <TouchableOpacity className="items-end">
             <Text className="font-poppins text-blue-500">
@@ -71,9 +67,7 @@ const LoginTab = () => {
 
       <View className="pb-10">
         <TouchableOpacity
-          className={`py-4 rounded-xl items-center ${
-            isLoading ? 'bg-gray-400' : 'bg-black'
-          }`}
+          className={`py-4 rounded-xl items-center ${isLoading ? 'bg-gray-400' : 'bg-black'}`}
           onPress={handleLogin}
           disabled={isLoading}
         >
@@ -86,7 +80,7 @@ const LoginTab = () => {
           <Text className="font-poppins text-gray-500">
             Don't have an account?{' '}
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/RegisterTab")}>
             <Text className="font-poppins-bold text-blue-500">
               Sign up
             </Text>

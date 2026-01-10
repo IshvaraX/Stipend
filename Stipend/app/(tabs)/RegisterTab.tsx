@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { useRouter } from "expo-router";
 
 const RegisterTab = () => {
+    const router = useRouter();
   const { register, isLoading } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -87,7 +89,9 @@ const RegisterTab = () => {
           <Text className="font-poppins text-gray-500">
             Already have an account?{' '}
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/LoginTab")}
+            >
             <Text className="font-poppins-bold text-blue-500">
               Sign in
             </Text>

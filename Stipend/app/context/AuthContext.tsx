@@ -1,5 +1,6 @@
 // context/AuthContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../types/auth';
 
 interface AuthContextType {
@@ -7,7 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,12 +27,37 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Generate a simple local token
+  const generateLocalToken = (username: string) => {
+    return `local_${Date.now()}_${username}`;
+  };
+
+  // Check for stored user on app start
+  useEffect(() => {
+    checkAuthState();
+  }, []);
+
+  const checkAuthState = async () => {
+    try {
+      const userData = await AsyncStorage.getItem('user');
+      
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      }
+    } catch (error) {
+      console.error('Error checking auth state:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = async (username: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/login', {
+      const response = await fetch('https://hfi-backend.vercel.app/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,16 +65,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         body: JSON.stringify({ username, password }),
       });
 
+      const responseText = await response.text();
+      console.log('Login response:', responseText);
+      
       if (!response.ok) {
-        throw new Error('Login failed');
+        throw new Error(responseText || 'Login failed');
       }
 
-      const data = await response.text();
-      // Assuming the backend returns a token or user data
-      console.log('Login successful:', data);
+      // Generate local token for this session
+      const localToken = generateLocalToken(username);
       
-      // Set user (you might want to decode JWT token here)
-      setUser({ username, email: `${username}@example.com` });
+      // Store user data only (no JWT needed)
+      const userData = { 
+        username, 
+        email: username, // or use email from response if available
+        localToken,
+        authenticatedAt: new Date().toISOString()
+      };
+      
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -60,23 +96,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const register = async (username: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/register', {
+      const response = await fetch('https://hfi-backend.vercel.app/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ 
+          username,
+          email,
+          password
+        }),
       });
 
+      const responseText = await response.text();
+      console.log('Register response:', responseText);
+      
       if (!response.ok) {
-        throw new Error('Registration failed');
+        throw new Error(responseText || 'Registration failed');
       }
 
-      const data = await response.text();
-      console.log('Registration successful:', data);
+      // Generate local token
+      const localToken = generateLocalToken(username);
       
-      // Auto-login after registration
-      setUser({ username, email });
+      // Store user data
+      const userData = { 
+        username, 
+        email,
+        localToken,
+        authenticatedAt: new Date().toISOString()
+      };
+      
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -85,8 +136,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    try {
+      await AsyncStorage.removeItem('user');
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
