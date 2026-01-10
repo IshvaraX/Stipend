@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import { useFonts, Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { AuthProvider } from "./context/AuthContext"; // Import AuthProvider
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
@@ -24,10 +25,12 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{ 
-        headerShown: false,
-      }}
-    />
+    <AuthProvider> {/* Wrap everything with AuthProvider */}
+      <Stack
+        screenOptions={{ 
+          headerShown: false,
+        }}
+      />
+    </AuthProvider>
   );
 }
