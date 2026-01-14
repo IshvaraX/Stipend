@@ -2,6 +2,9 @@
 import { View, TouchableOpacity, Modal } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { Text } from 'react-native';
+import { useRouter } from 'expo-router';
+
+const router = useRouter();
 
 interface HamburgerMenuProps {
   isVisible: boolean;
