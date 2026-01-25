@@ -69,7 +69,7 @@ const ForgotPassword = () => {
     
     setIsLoading(true);
     try {
-      const response = await fetch('https://hfi-backend.vercel.app/reset-password', {
+      const response = await fetch('https://hfi-backend.vercel.app/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, new_password: newPassword }),
@@ -79,7 +79,7 @@ const ForgotPassword = () => {
       if (!response.ok) throw new Error(data.detail || 'Failed to reset password');
 
       Alert.alert('Success', 'Password reset successful! You can now login with your new password.', [
-        { text: 'Login', onPress: () => router.replace('/(tabs)/login') }
+        { text: 'Login', onPress: () => router.replace('/(tabs)/LoginTab') }
       ]);
     } catch (error) {
       Alert.alert('Error', 'Failed to reset password. Please try again.');
